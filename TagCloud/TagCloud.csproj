@@ -17,4 +17,17 @@
       <ProjectReference Include="..\ResultTools\ResultTools.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="bin\Debug\net8.0\ResultTools.dll" />
+      <Content Include="bin\Debug\net8.0\ResultTools.pdb" />
+      <Content Include="bin\Debug\net8.0\TagCloud.deps.json" />
+      <Content Include="bin\Debug\net8.0\TagCloud.dll" />
+      <Content Include="bin\Debug\net8.0\TagCloud.pdb" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="bin\Debug\net8.0\Dictionaries\enUS.aff" />
+      <None Include="bin\Debug\net8.0\Dictionaries\enUS.dic" />
+    </ItemGroup>
+
 </Project>

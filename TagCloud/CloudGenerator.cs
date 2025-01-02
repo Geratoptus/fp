@@ -1,3 +1,4 @@
+using ResultTools;
 using TagCloud.WordsFilter;
 using TagCloud.WordsReader;
 using TagCloud.ImageGenerator;
@@ -13,21 +14,28 @@ public class CloudGenerator(
 {
     private const int MinFontSize = 10;
     private const int MaxFontSize = 80;
-    public string GenerateTagCloud()
-    {
-        var words = reader.ReadWords();
+    public Result<string> GenerateTagCloud() 
+#pragma warning disable CA1416
+        => reader
+            .ReadWords()
+            .Then(BuildFreqDict)
+            .Then(ToWordTagList)
+            .Then(imageGenerator.GenerateWindowsBitmap)
+            .Then(saver.Save);
+#pragma warning restore CA1416
 
-        var freqDict = filters
-            .Aggregate(words, (c, f) => f.ApplyFilter(c))
+    private static Result<List<WordTag>> ToWordTagList(Dictionary<string, int> freqDict)
+        => freqDict.Values.Max().AsResult().Then(
+            m => freqDict.Select(p => ToWordTag(p, m)).ToList());
+
+    private Result<Dictionary<string, int>> BuildFreqDict(List<string> words) 
+        => ApplyFilters(words).Then(wl => wl
             .GroupBy(w => w)
             .OrderByDescending(g => g.Count())
-            .ToDictionary(g => g.Key, g => g.Count());
-        
-        var maxFreq = freqDict.Values.Max();
-        var tagsList = freqDict.Select(pair => ToWordTag(pair, maxFreq)).ToList();
+            .ToDictionary(g => g.Key, g => g.Count()));
 
-        return saver.Save(imageGenerator.GenerateWindowsBitmap(tagsList));
-    }
+    private Result<List<string>> ApplyFilters(List<string> words)
+        => filters.Aggregate(words.AsResult(), (c, f) => c.Then(f.ApplyFilter));
 
     private static int TransformFreqToSize(int freq, int maxFreq) 
         => (int)(MinFontSize + (float)freq / maxFreq * (MaxFontSize - MinFontSize));
