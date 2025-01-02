@@ -1,31 +1,31 @@
+using ResultTools;
 using WeCantSpell.Hunspell;
 
 namespace TagCloud.WordsFilter;
 
 public class BoringWordsFilter : IWordsFilter
 {
-    private readonly WordList wordList = WordList.CreateFromFiles(
-        "./Dictionaries/enUS.dic", 
-        "./Dictionaries/enUS.aff");
+    private const string EnglishDic = "./Dictionaries/enUS.dic";
+    private const string EnglishAff = "./Dictionaries/enUS.aff";
+    public Result<List<string>> ApplyFilter(List<string> words)
+        => File.Exists(EnglishDic) && File.Exists(EnglishAff) 
+            ? WordList.CreateFromFiles(EnglishDic, EnglishAff)
+                .AsResult()
+                .Then(wl => words.Where(w => !IsBoring(w, wl)).ToList()) 
+            : Result.Fail<List<string>>("Cannot find dictionaries");
 
-    public List<string> ApplyFilter(List<string> words)
-        => words.Where(w => !IsBoring(w)).ToList();
-
-    private WordEntryDetail[] CheckDetails(string word)
+    private static WordEntryDetail[] CheckDetails(string word, WordList wordList)
     {
         var details = wordList.CheckDetails(word);
         return wordList[string.IsNullOrEmpty(details.Root) ? word : details.Root];
     }
 
-    private bool IsBoring(string word)
+    private static bool IsBoring(string word, WordList wordList)
     {
-        var details = CheckDetails(word);
+        var details = CheckDetails(word, wordList);
 
-        if (details.Length != 0 && details[0].Morphs.Count != 0)
-        {
-            var po = details[0].Morphs[0];
-            return po is "po:pronoun" or "po:preposition" or "po:determiner" or "po:conjunction";
-        }
-        return false;
+        if (details.Length == 0 || details[0].Morphs.Count == 0) return false;
+        var po = details[0].Morphs[0];
+        return po is "po:pronoun" or "po:preposition" or "po:determiner" or "po:conjunction";
     }
 }

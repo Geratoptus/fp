@@ -1,6 +1,8 @@
+using ResultTools;
+
 namespace TagCloud.WordsFilter;
 
 public interface IWordsFilter
 {
-    List<string> ApplyFilter(List<string> words);
+    Result<List<string>> ApplyFilter(List<string> words);
 }
