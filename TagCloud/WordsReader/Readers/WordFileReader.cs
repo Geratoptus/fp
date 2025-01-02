@@ -1,15 +1,16 @@
+using ResultTools;
 using TagCloud.WordsReader.Settings;
 using Xceed.Words.NET;
 
 namespace TagCloud.WordsReader.Readers;
 
-public class WordFileReader(string path) : IWordsReader
+public class WordFileReader(string path) : BaseFileReader(path)
 {
     public WordFileReader(WordFileReaderSettings settings)
         : this(settings.FilePath)
     { }
 
-    public List<string> ReadWords()
+    public override Result<List<string>> ReadFromExistingFile(string path)
     {
         using var document = DocX.Load(path);
         var paragraphs = document.Paragraphs;

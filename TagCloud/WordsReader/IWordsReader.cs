@@ -1,6 +1,8 @@
+using ResultTools;
+
 namespace TagCloud.WordsReader;
 
 public interface IWordsReader
 {
-    List<string> ReadWords();
+    Result<List<string>> ReadWords();
 }
