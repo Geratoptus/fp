@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Channels;
 
 namespace FileSenderRailway;
 
@@ -20,20 +21,10 @@ public interface ISender
     void Send(Document document);
 }
 
-public class Document
+public record Document(string Name, byte[] Content, DateTime Created, string Format)
 {
-    public Document(string name, byte[] content, DateTime created, string format)
-    {
-        Name = name;
-        Created = created;
-        Format = format;
-        Content = content;
-    }
-
-    public string Name { get; set; }
-    public DateTime Created { get; set; }
-    public string Format { get; set; }
-    public byte[] Content { get; set; }
+    public Document ChangeContent(byte[] newContent)
+        => this with { Content = newContent };
 }
 
 public class FileContent

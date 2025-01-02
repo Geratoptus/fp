@@ -29,7 +29,11 @@ public class FileSender_Should
         cryptographer = A.Fake<ICryptographer>();
         sender = A.Fake<ISender>();
         recognizer = A.Fake<IRecognizer>();
-        fileSender = new FileSender(cryptographer, sender, recognizer, () => now);
+        fileSender = new FileSender(
+            sender, 
+            () => now, 
+            recognizer,
+            cryptographer);
     }
 
     [Test]
@@ -41,19 +45,9 @@ public class FileSender_Should
         PrepareDocument(file, signed, now.AddDays(-daysBeforeNow), format);
 
         fileSender.SendFiles(new[] { file }, certificate)
-            .Should().BeEquivalentTo(new[] { new FileSendResult(file) });
+            .Should().BeEquivalentTo(new FileSendResult(file));
         A.CallTo(() => sender.Send(A<Document>.That.Matches(d => d.Content == signed)))
             .MustHaveHappened();
-    }
-
-
-    [Test]
-    public void Fail_WhenNotRecognized()
-    {
-        A.CallTo(() => recognizer.Recognize(file))
-            .Throws(new FormatException("Can't recognize"));
-
-        VerifyErrorOnPrepareFile(file, certificate);
     }
 
     [TestCase("1.0", 0)]

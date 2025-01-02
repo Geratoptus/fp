@@ -1,63 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace FileSenderRailway;
 
-public class FileSender
+public class FileSender(
+    ISender sender,
+    Func<DateTime> now,
+    IRecognizer recognizer,
+    ICryptographer cryptographer)
 {
-    private readonly ICryptographer cryptographer;
-    private readonly IRecognizer recognizer;
-    private readonly Func<DateTime> now;
-    private readonly ISender sender;
-
-    public FileSender(
-        ICryptographer cryptographer,
-        ISender sender,
-        IRecognizer recognizer,
-        Func<DateTime> now)
-    {
-        this.cryptographer = cryptographer;
-        this.sender = sender;
-        this.recognizer = recognizer;
-        this.now = now;
-    }
-
     public IEnumerable<FileSendResult> SendFiles(FileContent[] files, X509Certificate certificate)
-    {
-        foreach (var file in files)
-        {
-            string errorMessage = null;
-            try
-            {
-                Document doc = recognizer.Recognize(file);
-                if (!IsValidFormatVersion(doc))
-                    throw new FormatException("Invalid format version");
-                if (!IsValidTimestamp(doc))
-                    throw new FormatException("Too old document");
-                doc.Content = cryptographer.Sign(doc.Content, certificate);
-                sender.Send(doc);
-            }
-            catch (FormatException e)
-            {
-                errorMessage = "Can't prepare file to send. " + e.Message;
-            }
-            catch (InvalidOperationException e)
-            {
-                errorMessage = "Can't send. " + e.Message;
-            }
-            yield return new FileSendResult(file, errorMessage);
-        }
-    }
+        => files.Select(file => new FileSendResult(file, recognizer
+            .Recognize(file).AsResult()
+            .Then(doc => PrepareDocumentToSend(doc, certificate))
+            .RefineError("Can't prepare file to send")
+            .Then(sender.Send).Error
+        ));
 
-    private bool IsValidFormatVersion(Document doc)
-    {
-        return doc.Format == "4.0" || doc.Format == "3.1";
-    }
+    private Result<Document> CheckDocumentVersion(Document document)
+        => IsValidFormatVersion(document) ? document : Result.Fail<Document>("Invalid format version");
+    
+    private Result<Document> CheckDocumentTimestamp(Document document) 
+        => IsValidTimestamp(document) ? document : Result.Fail<Document>("Too old document");
+
+    private Result<Document> PrepareDocumentToSend(Document doc, X509Certificate certificate)
+        => doc.AsResult()
+            .Then(CheckDocumentVersion)
+            .Then(CheckDocumentTimestamp)
+            .Then(d => d.ChangeContent(cryptographer.Sign(d.Content, certificate)));
+    
+
+    private bool IsValidFormatVersion(Document doc) 
+        => doc.Format is "4.0" or "3.1";
 
     private bool IsValidTimestamp(Document doc)
-    {
-        var oneMonthBefore = now().AddMonths(-1);
-        return doc.Created > oneMonthBefore;
-    }
+        => doc.Created > now().AddMonths(-1);
 }
