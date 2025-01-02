@@ -1,4 +1,5 @@
 using System.Drawing;
+using ResultTools;
 using TagCloud.CloudLayouter.Extensions;
 using TagCloud.CloudLayouter.PointLayouter.Generators;
 using TagCloud.CloudLayouter.PointLayouter.Settings;
@@ -10,8 +11,8 @@ public class CircularCloudLayouter(Point layoutCenter, IPointsGenerator pointsGe
     private const string FiniteGeneratorExceptionMessage =
         "В конструктор CircularCloudLayouter был передан конечный генератор точек";
 
-    private readonly List<Point> _placedPoints = [];
-    private readonly List<Rectangle> _layoutRectangles = [];
+    private readonly List<Point> placedPoints = [];
+    private readonly List<Rectangle> layoutRectangles = [];
 
     public CircularCloudLayouter(Point layoutCenter, double radius, double angleOffset) :
         this(layoutCenter, new FermatSpiralPointsGenerator(radius, angleOffset))
@@ -23,20 +24,25 @@ public class CircularCloudLayouter(Point layoutCenter, IPointsGenerator pointsGe
     {
     }
 
-    public Rectangle PutNextRectangle(Size rectangleSize)
-    {
-        var rectangle = pointsGenerator
-            .GeneratePoints(layoutCenter)
-            .Except(_placedPoints)
-            .Select(point => new Rectangle()
-                .CreateRectangleWithCenter(point, rectangleSize))
-            .FirstOrDefault(rectangle => !_layoutRectangles.Any(rectangle.IntersectsWith));
+    public Result<Rectangle> PutNextRectangle(Size rectangleSize)
+        => TryPutNext(rectangleSize)
+            .Then(RememberRectangle)
+            .RefineError(FiniteGeneratorExceptionMessage);
 
-        if (rectangle.IsEmpty)
-            throw new InvalidOperationException(FiniteGeneratorExceptionMessage);
-        
-        _placedPoints.Add(rectangle.Location - rectangleSize / 2);
-        _layoutRectangles.Add(rectangle);
-        return rectangle;
+    private Rectangle RememberRectangle(Rectangle rect)
+    {
+        layoutRectangles.Add(rect);
+        placedPoints.Add(rect.Location - rect.Size / 2);
+        return rect;
     }
+
+    private Result<Rectangle> TryPutNext(Size rectangleSize)
+        => pointsGenerator
+            .GeneratePoints(layoutCenter)
+            .Then(pointsEnumerable => pointsEnumerable
+                .Except(placedPoints)
+                .Select(point => new Rectangle()
+                    .CreateRectangleWithCenter(point, rectangleSize))
+                .First(r => !layoutRectangles.Any(r.IntersectsWith))
+            );
 }

@@ -1,39 +1,38 @@
 using System.Drawing;
+using ResultTools;
 using TagCloud.CloudLayouter.PointLayouter.Settings.Generators;
 
 namespace TagCloud.CloudLayouter.PointLayouter.Generators;
 
-public class FermatSpiralPointsGenerator : IPointsGenerator
+public class FermatSpiralPointsGenerator(double radius, double angleOffset) : IPointsGenerator
 {
-    private readonly double _angleOffset;
-    private readonly double _radius;
+    private readonly double angleOffset = angleOffset * Math.PI / 180;
 
-    private double OffsetPerRadian => _radius / (2 * Math.PI);
-
-    public FermatSpiralPointsGenerator(double radius, double angleOffset)
-    {
-        if (radius <= 0)
-            throw new ArgumentException("radius must be greater than 0", nameof(radius));
-        if (angleOffset <= 0)
-            throw new ArgumentException("angleOffset must be greater than 0", nameof(angleOffset));
-
-        _angleOffset = angleOffset * Math.PI / 180;
-        _radius = radius;
-    }
+    private double OffsetPerRadian => radius / (2 * Math.PI);
 
     public FermatSpiralPointsGenerator(FermatSpiralSettings settings)
         : this(settings.Radius, settings.AngleOffset)
     {
     }
 
-    public IEnumerable<Point> GeneratePoints(Point spiralCenter)
+    public Result<IEnumerable<Point>> GeneratePoints(Point startPoint)
+    {
+        if (radius <= 0 || angleOffset <= 0)
+        {
+            var argName = radius <= 0 ? nameof(radius) : nameof(angleOffset);
+            return Result.Fail<IEnumerable<Point>>($"Fermat spiral params should be positive: {argName}");
+        }
+        return PointGenerator(startPoint).AsResult();
+    }
+    
+    public IEnumerable<Point> PointGenerator(Point spiralCenter)
     {
         double angle = 0;
 
         while (true)
         {
             yield return GetPointByPolarCoordinates(spiralCenter, angle);
-            angle += _angleOffset;
+            angle += angleOffset;
         }
         // ReSharper disable once IteratorNeverReturns
     }

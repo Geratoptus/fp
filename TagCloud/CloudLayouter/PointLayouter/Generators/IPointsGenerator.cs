@@ -1,8 +1,9 @@
 using System.Drawing;
+using ResultTools;
 
 namespace TagCloud.CloudLayouter.PointLayouter.Generators;
 
 public interface IPointsGenerator
 {
-   public IEnumerable<Point> GeneratePoints(Point startPoint); 
+   public Result<IEnumerable<Point>> GeneratePoints(Point startPoint); 
 }
