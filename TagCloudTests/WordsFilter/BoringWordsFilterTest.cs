@@ -7,13 +7,13 @@ namespace TagCloudTests.WordsFilter;
 [TestOf(typeof(BoringWordsFilter))]
 public class BoringWordsFilterTest
 {
-    private readonly BoringWordsFilter _filter = new();
+    private readonly BoringWordsFilter filter = new();
 
     [Test]
     public void BoringWordsFilter_ApplyFilter_ShouldRemovePrimitiveWords()
     {
         List<string> words = ["a", "the", "hello"];
-        var filtered = _filter.ApplyFilter(words);
+        var filtered = filter.ApplyFilter(words).GetValueOrThrow();
         filtered.Should().BeEquivalentTo(["hello"], options => options.WithStrictOrdering());
     }
 }

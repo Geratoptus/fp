@@ -23,7 +23,7 @@ public class CloudGeneratorTest
     {
         var generator = InitGenerator();
 
-        var savePath = generator.GenerateTagCloud();
+        var savePath = generator.GenerateTagCloud().GetValueOrThrow();
 
         File.Exists(savePath).Should().BeTrue();
         Approvals.VerifyFile(savePath);

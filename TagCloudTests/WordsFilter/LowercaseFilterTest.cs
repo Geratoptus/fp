@@ -7,13 +7,13 @@ namespace TagCloudTests.WordsFilter;
 [TestOf(typeof(LowercaseFilter))]
 public class LowercaseFilterTest
 {
-    private readonly LowercaseFilter _filter = new();
+    private readonly LowercaseFilter filter = new();
 
     [Test]
     public void LowercaseFilter_ApplyFilter_ShouldLowerAllWords()
     {
         List<string> words = ["Hello", "WORLD"];
-        var filtered = _filter.ApplyFilter(words);
+        var filtered = filter.ApplyFilter(words).GetValueOrThrow();
         filtered.Should().BeEquivalentTo(["hello", "world"], options => options.WithStrictOrdering());
     }
 }

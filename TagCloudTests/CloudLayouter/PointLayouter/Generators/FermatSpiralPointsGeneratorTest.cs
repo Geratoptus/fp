@@ -13,10 +13,11 @@ public class FermatSpiralPointsGeneratorTest
     [TestCase(0, 1, Description = "Radius is zero")]
     [TestCase(1, 0, Description = "AngleOffset is zero")]
     [TestCase(1, -1, Description = "Negative angleOffset")]
-    public void ShouldThrowArgumentException_AfterWrongCreation(double radius, double angleOffset)
+    public void ShouldReturnFailResult_AfterWrongCreation(double radius, double angleOffset)
     {
-        var creation = () => new FermatSpiralPointsGenerator(radius, angleOffset);
-        creation.Should().Throw<ArgumentException>();
+        var creation = () => new FermatSpiralPointsGenerator(radius, angleOffset)
+            .GeneratePoints(new Point());
+        creation.Invoke().IsSuccess.Should().BeFalse();
 
     }
 
@@ -26,6 +27,7 @@ public class FermatSpiralPointsGeneratorTest
         var pointsGenerator = new FermatSpiralPointsGenerator(radius, angleOffset);
         var actualPoint = pointsGenerator
             .GeneratePoints(new Point(0, 0))
+            .GetValueOrThrow()
             .Skip(pointNumber)
             .First();
         return actualPoint;
