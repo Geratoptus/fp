@@ -13,7 +13,7 @@ public class BitmapGenerator(Size size, FontFamily family, Color background, Col
         : this(settings.Sizes, settings.Font, settings.BackgroundColor, settings.ForegroundColor, layouter)
     {}
     
-    public Result<Bitmap> GenerateWindowsBitmap(List<WordTag> tags)
+    public Result<Bitmap> GenerateWindowsBitmap(IEnumerable<WordTag> tags)
     {
         var bitmap = size is { Width: > 0, Height: > 0 } 
             ? new Bitmap(size.Width, size.Height).AsResult() 
@@ -34,7 +34,7 @@ public class BitmapGenerator(Size size, FontFamily family, Color background, Col
             ? new Font(family, fontSize).AsResult() 
             : Result.Fail<Font>("Cannot generate font with negative size");
 
-    private IEnumerable<Result<None>> ProcessTags(List<WordTag> tags, Graphics graphics)
+    private IEnumerable<Result<None>> ProcessTags(IEnumerable<WordTag> tags, Graphics graphics)
         => tags.Select(t => BuildFont(t.FontSize).Then(f => DrawTag(f, t, graphics)));
 
     private Result<None> DrawTag(Font? font, WordTag tag, Graphics graphics)

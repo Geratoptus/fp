@@ -7,12 +7,12 @@ public class BoringWordsFilter : IWordsFilter
 {
     private const string EnglishDic = "./Dictionaries/enUS.dic";
     private const string EnglishAff = "./Dictionaries/enUS.aff";
-    public Result<List<string>> ApplyFilter(List<string> words)
+    public Result<IEnumerable<string>> ApplyFilter(IEnumerable<string> words)
         => File.Exists(EnglishDic) && File.Exists(EnglishAff) 
             ? WordList.CreateFromFiles(EnglishDic, EnglishAff)
                 .AsResult()
-                .Then(wl => words.Where(w => !IsBoring(w, wl)).ToList()) 
-            : Result.Fail<List<string>>("Cannot find dictionaries");
+                .Then(wl => words.Where(w => !IsBoring(w, wl)))
+            : Result.Fail<IEnumerable<string>>("Cannot find dictionaries");
 
     private static WordEntryDetail[] CheckDetails(string word, WordList wordList)
     {

@@ -24,17 +24,17 @@ public class CloudGenerator(
             .Then(saver.Save);
 #pragma warning restore CA1416
 
-    private static Result<List<WordTag>> ToWordTagList(Dictionary<string, int> freqDict)
+    private static Result<IEnumerable<WordTag>> ToWordTagList(Dictionary<string, int> freqDict)
         => freqDict.Values.Max().AsResult().Then(
-            m => freqDict.Select(p => ToWordTag(p, m)).ToList());
+            m => freqDict.Select(p => ToWordTag(p, m)));
 
-    private Result<Dictionary<string, int>> BuildFreqDict(List<string> words) 
+    private Result<Dictionary<string, int>> BuildFreqDict(IEnumerable<string> words) 
         => ApplyFilters(words).Then(wl => wl
             .GroupBy(w => w)
             .OrderByDescending(g => g.Count())
             .ToDictionary(g => g.Key, g => g.Count()));
 
-    private Result<List<string>> ApplyFilters(List<string> words)
+    private Result<IEnumerable<string>> ApplyFilters(IEnumerable<string> words)
         => filters.Aggregate(words.AsResult(), (c, f) => c.Then(f.ApplyFilter));
 
     private static int TransformFreqToSize(int freq, int maxFreq) 
