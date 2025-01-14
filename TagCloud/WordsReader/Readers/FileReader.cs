@@ -10,10 +10,27 @@ public class FileReader(string path, Encoding encoding) : BaseFileReader(path)
         : this(settings.FilePath, settings.Encoding)
     {
     }
-    
-    public override Result<List<string>> ReadFromExistingFile(string path)
-        => File.ReadAllLines(path, encoding)
-            .Select(line => line.Split(" "))
-            .SelectMany(arr => arr)
-            .ToList();
+
+    protected override Result<List<string>> ReadFromExistingFile(string path)
+    {
+        try
+        {
+            return File.ReadAllLines(path, encoding)
+                .Select(line => line.Split(" "))
+                .SelectMany(arr => arr)
+                .ToList();
+        }
+        catch (ArgumentNullException)
+        {
+            return Result.Fail<List<string>>("Please provide a valid file path");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Result.Fail<List<string>>("Access to file denied");
+        }
+        catch (FormatException)
+        {
+            return Result.Fail<List<string>>("File format not supported");
+        }
+    }
 }

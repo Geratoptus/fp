@@ -22,7 +22,7 @@ public class WordsReadersTest
     }
 
     [TestCaseSource(nameof(WordsReadersTestCases))]
-    public void WordsReaders_ReadWords_ShouldReadAllWords(IWordsReader reader)
+    public void WordsReaders_ReadWords_ShouldReadAllWords(BaseFileReader reader)
     {
         var words = reader.ReadWords().GetValueOrThrow();
         words.ToText(" ").Should().Be(FileContent);

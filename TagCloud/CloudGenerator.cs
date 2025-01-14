@@ -3,12 +3,13 @@ using TagCloud.WordsFilter;
 using TagCloud.WordsReader;
 using TagCloud.ImageGenerator;
 using TagCloud.ImageSaver;
+using TagCloud.WordsReader.Readers;
 
 namespace TagCloud;
 
 public class CloudGenerator(
     IImageSaver saver,
-    IWordsReader reader,
+    BaseFileReader reader,
     BitmapGenerator imageGenerator,
     IEnumerable<IWordsFilter> filters)
 {

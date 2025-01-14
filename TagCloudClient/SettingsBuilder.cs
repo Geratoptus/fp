@@ -44,15 +44,15 @@ public static class SettingsBuilder
     private static void RegisterWordsReaders(ContainerBuilder builder, IOptions settings)
     {
         builder
-            .RegisterType<FileReader>().As<IWordsReader>()
+            .RegisterType<FileReader>().As<BaseFileReader>()
             .OnlyIf(_ => Path.GetExtension(settings.Path) == ".txt");
 
         builder
-            .RegisterType<CsvFileReader>().As<IWordsReader>()
+            .RegisterType<CsvFileReader>().As<BaseFileReader>()
             .OnlyIf(_ => Path.GetExtension(settings.Path) == ".csv");
 
         builder
-            .RegisterType<WordFileReader>().As<IWordsReader>()
+            .RegisterType<WordFileReader>().As<BaseFileReader>()
             .OnlyIf(_ => Path.GetExtension(settings.Path) == ".docx");
     }
 

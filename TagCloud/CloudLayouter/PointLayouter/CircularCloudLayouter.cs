@@ -8,9 +8,6 @@ namespace TagCloud.CloudLayouter.PointLayouter;
 
 public class CircularCloudLayouter(Point layoutCenter, IPointsGenerator pointsGenerator) : ICloudLayouter
 {
-    private const string FiniteGeneratorExceptionMessage =
-        "В конструктор CircularCloudLayouter был передан конечный генератор точек";
-
     private readonly List<Point> placedPoints = [];
     private readonly List<Rectangle> layoutRectangles = [];
 
@@ -27,7 +24,7 @@ public class CircularCloudLayouter(Point layoutCenter, IPointsGenerator pointsGe
     public Result<Rectangle> PutNextRectangle(Size rectangleSize)
         => TryPutNext(rectangleSize)
             .Then(RememberRectangle)
-            .RefineError(FiniteGeneratorExceptionMessage);
+            .RefineError("В конструктор CircularCloudLayouter был передан конечный генератор точек");
 
     private Rectangle RememberRectangle(Rectangle rect)
     {

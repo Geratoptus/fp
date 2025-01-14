@@ -10,10 +10,21 @@ public class WordFileReader(string path) : BaseFileReader(path)
         : this(settings.FilePath)
     { }
 
-    public override Result<List<string>> ReadFromExistingFile(string path)
+    protected override Result<List<string>> ReadFromExistingFile(string path)
     {
-        using var document = DocX.Load(path);
-        var paragraphs = document.Paragraphs;
-        return paragraphs.Select(p => p.Text).ToList();
+        try
+        {
+            using var document = DocX.Load(path);
+            var paragraphs = document.Paragraphs;
+            return paragraphs.Select(p => p.Text).ToList();
+        }
+        catch (IOException)
+        {
+            return Result.Fail<List<string>>($"Can't open file {path}");
+        }
+        catch (NullReferenceException)
+        {
+            return Result.Fail<List<string>>("Null reference, something went wrong with load");
+        }
     }
 }
